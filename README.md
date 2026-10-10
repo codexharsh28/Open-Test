@@ -36,15 +36,21 @@ Choose a generated test path and retry count with `--test-file` and
 `--max-retries`. Each model request is limited to 180 seconds and 1,024 output
 tokens; each pytest execution has a 10-second timeout.
 
-Launch the three-column dashboard:
+Launch the showcase dashboard:
 
 ```bash
 streamlit run app.py
 ```
 
-The generated test file is written to `test_target.py` in the current working
-directory (or to the path supplied with `--test-file`). A repair attempt fixes
-the generated tests; it does not edit the target module.
+The dashboard opens in **Demo mode** with `target_code.py` loaded automatically.
+Turn Demo mode off to upload another `.py` module. Each run gets its own
+`.open_test_runs/` directory containing the module copy and generated tests, so
+uploaded code never replaces the demo source. Both code previews have their own
+scroll areas.
+
+From the CLI, the generated test file is written to `test_target.py` in the
+current working directory (or to the path supplied with `--test-file`). A
+repair attempt fixes the generated tests; it does not edit the target module.
 
 ## Demo behavior
 
