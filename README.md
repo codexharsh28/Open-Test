@@ -33,7 +33,8 @@ python -m harness.generator --target target_code.py
 ```
 
 Choose a generated test path and retry count with `--test-file` and
-`--max-retries`. Each pytest execution has a 10-second timeout.
+`--max-retries`. Each model request is limited to 180 seconds and 1,024 output
+tokens; each pytest execution has a 10-second timeout.
 
 Launch the three-column dashboard:
 

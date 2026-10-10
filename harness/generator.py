@@ -20,6 +20,8 @@ from .runner import run_test
 
 
 ProgressCallback = Callable[[dict[str, Any]], None]
+GENERATION_TIMEOUT_SECONDS = 180
+MAX_GENERATED_TOKENS = 1024
 
 
 class TestForgeEngine:
@@ -30,7 +32,11 @@ class TestForgeEngine:
         # Bind only to loopback: this harness does not use external model APIs.
         self.host = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434")
         self.configuration_error = self._validate_local_host(self.host)
-        self.client = Client(host=self.host, trust_env=False) if Client and not self.configuration_error else None
+        self.client = (
+            Client(host=self.host, trust_env=False, timeout=GENERATION_TIMEOUT_SECONDS)
+            if Client and not self.configuration_error
+            else None
+        )
 
     def generate_and_heal(
         self,
@@ -83,7 +89,11 @@ class TestForgeEngine:
             iteration = attempt + 1
             self._emit(on_event, events, f"Iteration {iteration}: requesting test code from local {self.model} model.")
             try:
-                response = self.client.chat(model=self.model, messages=history)
+                response = self.client.chat(
+                    model=self.model,
+                    messages=history,
+                    options={"num_predict": MAX_GENERATED_TOKENS},
+                )
                 generated = self._response_content(response)
             except Exception as exc:  # Ollama connection/model errors vary by client version.
                 message = f"Ollama request failed: {type(exc).__name__}: {exc}"
