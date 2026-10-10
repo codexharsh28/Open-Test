@@ -22,7 +22,7 @@ TARGET_FILE = ROOT / "target_code.py"
 RUNS_DIR = ROOT / ".open_test_runs"
 MODEL = "qwen2.5-coder:3b"
 OLLAMA_TAGS_URL = "http://127.0.0.1:11434/api/tags"
-CODE_WINDOW_HEIGHT = 410
+CODE_WINDOW_HEIGHT = 360
 
 
 def _runtime_status() -> dict[str, Any]:
@@ -206,7 +206,7 @@ def _render_styles() -> None:
         .panel-tag{margin-left:auto;color:#868c92;font:10px ui-monospace,SFMono-Regular,Menlo,monospace}
         [data-testid="stCode"]{border:1px solid #38383b;border-radius:0 0 5px 5px;overflow:hidden;margin-top:0}
         [data-testid="stCode"] pre{background:#1b1b1c!important}
-        .empty-state{height:410px;display:flex;align-items:center;justify-content:center;background:#1b1b1c;border:1px solid #38383b;border-radius:0 0 5px 5px;color:#7c8288}
+        .empty-state{height:360px;display:flex;align-items:center;justify-content:center;background:#1b1b1c;border:1px solid #38383b;border-radius:0 0 5px 5px;color:#7c8288}
         .stButton>button[kind="primary"]{background:#0e639c;color:#fff;border:1px solid #1177bb;border-radius:4px;min-height:34px;font-size:12px;font-weight:600}
         .stButton>button[kind="primary"]:hover{background:#1177bb;border-color:#2898e0;color:#fff}
         .stButton>button:disabled{background:#333;border-color:#414141;color:#777}
@@ -250,32 +250,35 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    source_col, output_col = st.columns([1, 1], gap="large")
     source: str | None = None
     source_name = ""
     source_error: str | None = None
     is_demo = True
     source_inspection: dict[str, Any] = {"valid": False, "error": ""}
-    with source_col:
+    mode_col, upload_col = st.columns([.55, 1.45], vertical_alignment="center")
+    with mode_col:
         is_demo = st.toggle(
             "Demo mode",
             value=True,
             help="Loads target_code.py automatically for a repeatable walkthrough.",
         )
-        if is_demo:
-            source, source_name, source_error = _load_demo_source()
-        else:
+    if is_demo:
+        source, source_name, source_error = _load_demo_source()
+    else:
+        with upload_col:
             uploaded_file = st.file_uploader(
-                "Upload a Python module",
+                "Target module",
                 type=["py"],
                 help="The uploaded file is isolated to this run.",
             )
             source, source_name, source_error = _load_upload(uploaded_file)
 
-        source_inspection = inspect_python(source) if source else {"valid": False, "error": ""}
-        if source and not source_inspection["valid"]:
-            source_error = source_inspection["error"]
+    source_inspection = inspect_python(source) if source else {"valid": False, "error": ""}
+    if source and not source_inspection["valid"]:
+        source_error = source_inspection["error"]
 
+    source_col, output_col = st.columns([1, 1], gap="large")
+    with source_col:
         escaped_name = html.escape(source_name or ("Choose a .py file" if not is_demo else "target_code.py"))
         source_label = "Demo target" if is_demo else "Uploaded target"
         st.markdown(
@@ -285,7 +288,7 @@ def main() -> None:
         )
         if source:
             st.code(source, language="python", line_numbers=True, height=CODE_WINDOW_HEIGHT)
-            st.markdown('<div class="support-note">Read-only preview · A private working copy is used for each run.</div>', unsafe_allow_html=True)
+            st.markdown('<div class="support-note">Read-only preview · Isolated copy per run.</div>', unsafe_allow_html=True)
         else:
             st.markdown(
                 '<div class="empty-state">Choose a <code>.py</code> file to preview it here and enable a run.</div>',
@@ -295,12 +298,10 @@ def main() -> None:
             st.error(source_error)
 
     last_test_path = st.session_state.get("generated_test_path")
-    last_source_name = st.session_state.get("generated_source_name", "")
     with output_col:
-        output_caption = f"from {html.escape(last_source_name)}" if last_test_path and last_source_name else "awaiting first run"
         st.markdown(
-            '<div class="panel-heading"><span class="panel-title">Generated tests</span>'
-            f'<span class="panel-tag">test_target.py · {output_caption}</span></div>',
+            '<div class="panel-heading"><span class="panel-title">Tests</span>'
+            '<span class="panel-tag">test_target.py</span></div>',
             unsafe_allow_html=True,
         )
         if last_test_path and Path(last_test_path).is_file():
@@ -315,7 +316,7 @@ def main() -> None:
                 '<div class="empty-state">Generated tests will appear here after the first run.</div>',
                 unsafe_allow_html=True,
             )
-        st.markdown('<div class="support-note">Repairs update the generated tests only.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="support-note">Repairs alter generated tests only.</div>', unsafe_allow_html=True)
 
     ready = bool(status["ollama"] and status["model"] and status["pytest"] and status["ollama_package"])
     target_ready = bool(source and source_inspection["valid"] and not source_error)
