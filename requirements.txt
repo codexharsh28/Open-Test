@@ -1,0 +1,4 @@
+ollama
+pytest
+pytest-cov
+streamlit
