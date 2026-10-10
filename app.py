@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import base64
 import importlib.util
 import json
 import urllib.error
@@ -19,10 +20,16 @@ from harness.generator import TestForgeEngine
 
 ROOT = Path(__file__).resolve().parent
 TARGET_FILE = ROOT / "target_code.py"
+APP_ICON_FILE = ROOT / "assets" / "open_test.svg"
 RUNS_DIR = ROOT / ".open_test_runs"
 MODEL = "qwen2.5-coder:3b"
 OLLAMA_TAGS_URL = "http://127.0.0.1:11434/api/tags"
 CODE_WINDOW_HEIGHT = 360
+
+
+def _app_icon_data_uri() -> str:
+    encoded = base64.b64encode(APP_ICON_FILE.read_bytes()).decode("ascii")
+    return f"data:image/svg+xml;base64,{encoded}"
 
 
 def _runtime_status() -> dict[str, Any]:
@@ -190,7 +197,8 @@ def _render_styles() -> None:
         h1,h2,h3,p,label{color:#d4d4d4}
         [data-testid="stMarkdownContainer"] p{color:#9da3a9}
         .brandbar{height:45px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #303033;margin:0 -1.2rem 1rem;padding:0 1.2rem;background:#181818}
-        .brand-mark{display:grid;place-items:center;width:23px;height:23px;border-radius:5px;background:#245d67;color:#e3f6f3;font-size:10px}
+        .brand-mark{display:grid;place-items:center;width:27px;height:27px;border-radius:6px;overflow:hidden;background:transparent}
+        .brand-mark img{display:block;width:27px;height:27px}
         .brand-name{font-size:13px;letter-spacing:0;color:#e5e5e5}
         .brand-sub{font-size:11px;color:#858b91;letter-spacing:0}
         .brand-meta{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#9da4aa}
@@ -219,6 +227,9 @@ def _render_styles() -> None:
         .run-row{border-top:1px solid #38383b;margin-top:.8rem;padding-top:.7rem}
         .activity-heading{display:flex;align-items:center;gap:15px;background:#252526;border:1px solid #38383b;border-bottom:0;padding:8px 12px;color:#aaa;font-size:10px;letter-spacing:.03em}
         .activity-heading .selected{border-bottom:1px solid #3794ff;padding-bottom:8px;margin-bottom:-9px;color:#fff}
+        [data-testid="stPopoverButton"]{background:#252526!important;color:#c9ced3!important;border:1px solid #3b3b3b!important;border-radius:4px!important;font-size:11px!important;min-height:30px!important;white-space:nowrap!important;min-width:100px!important}
+        [data-testid="stPopoverButton"]:hover{background:#333!important;color:#fff!important;border-color:#555!important}
+        [data-testid="stPopoverBody"]{width:min(360px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important}
         .statusbar{display:flex;align-items:center;gap:17px;background:#007acc;color:#fff;margin:1rem -1.2rem -1.5rem;padding:4px 12px;font-size:10px}
         .statusbar span:last-child{margin-left:auto}
         @media(max-width:760px){[data-testid="stMainBlockContainer"]{padding-left:.7rem;padding-right:.7rem}.brandbar{margin-left:-.7rem;margin-right:-.7rem;padding:0 .7rem}[data-testid="stHorizontalBlock"]:has(.panel-heading){flex-direction:row!important;flex-wrap:nowrap!important}[data-testid="stHorizontalBlock"]:has(.panel-heading)>[data-testid="column"]{flex:1 1 0%!important;min-width:0!important}.statusbar{margin-left:-.7rem;margin-right:-.7rem}}
@@ -230,25 +241,35 @@ def _render_styles() -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Open Test — Local Test Forge", page_icon="🧪", layout="wide")
+    st.set_page_config(page_title="Open Test — Local Test Forge", page_icon=APP_ICON_FILE, layout="wide")
     _render_styles()
     status = _runtime_status()
 
     st.markdown(
-        '<div class="brandbar"><div class="brand-lockup"><div class="brand-mark">OT</div>'
+        f'<div class="brandbar"><div class="brand-lockup"><div class="brand-mark"><img alt="" src="{_app_icon_data_uri()}" /></div>'
         '<div><span class="brand-name">OPEN TEST</span><span class="brand-sub">LOCAL TEST RUNNER</span></div></div>'
         '<div class="brand-meta">Private by design · Runs on your machine</div></div>',
         unsafe_allow_html=True,
     )
 
     st.markdown('<h1>Test workspace</h1><div class="page-subtitle">Choose a built-in example or upload a Python module to begin.</div>', unsafe_allow_html=True)
-    st.markdown(
-        f'<div class="runtime-card">'
-        f'{_status_chip("Ollama", status["ollama"])}'
-        f'{_status_chip(MODEL, status["model"])}'
-        f'{_status_chip("Pytest", status["pytest"] and status["ollama_package"])}</div>',
-        unsafe_allow_html=True,
-    )
+    status_col, about_col = st.columns([1, .3], vertical_alignment="center")
+    with status_col:
+        st.markdown(
+            f'<div class="runtime-card">'
+            f'{_status_chip("Ollama", status["ollama"])}'
+            f'{_status_chip(MODEL, status["model"])}'
+            f'{_status_chip("Pytest", status["pytest"] and status["ollama_package"])}</div>',
+            unsafe_allow_html=True,
+        )
+    with about_col:
+        with st.popover("About", icon=":material/info:", width=320):
+            st.markdown("**Open Test**")
+            st.write(
+                "A local-first pytest workbench that generates tests for Python modules, "
+                "runs them, and uses failures to refine the test suite."
+            )
+            st.caption("Developed by Chitransh Singh and Harsh Singh")
 
     source: str | None = None
     source_name = ""
