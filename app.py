@@ -22,7 +22,7 @@ TARGET_FILE = ROOT / "target_code.py"
 RUNS_DIR = ROOT / ".open_test_runs"
 MODEL = "qwen2.5-coder:3b"
 OLLAMA_TAGS_URL = "http://127.0.0.1:11434/api/tags"
-CODE_WINDOW_HEIGHT = 340
+CODE_WINDOW_HEIGHT = 410
 
 
 def _runtime_status() -> dict[str, Any]:
@@ -183,6 +183,46 @@ def _render_styles() -> None:
         [data-testid="stFileUploader"] section{background:#f7f9f8;border:1px dashed #c4d1d5;border-radius:8px}
         .page-subtitle,.run-meta{color:var(--muted);font-size:12px;line-height:1.5}
         @media(max-width:800px){[data-testid="stMainBlockContainer"]{padding-left:1rem;padding-right:1rem}.runtime-card{justify-content:flex-start}.brand-meta{display:none}[data-testid="stHorizontalBlock"]:has(.panel-heading){flex-wrap:wrap}[data-testid="stHorizontalBlock"]:has(.panel-heading)>[data-testid="column"]{flex:1 1 100%;min-width:100%}}
+        /* VS Code-inspired editor shell */
+        :root{--ink:#d4d4d4;--muted:#969da3;--paper:#1e1e1e;--surface:#252526;--line:#38383b;--forest:#0e639c;--lime:#3794ff}
+        .stApp,[data-testid="stAppViewContainer"]{background:#1e1e1e;color:#d4d4d4}
+        [data-testid="stMainBlockContainer"]{max-width:none;padding:0 1.2rem 1.5rem}
+        h1,h2,h3,p,label{color:#d4d4d4}
+        [data-testid="stMarkdownContainer"] p{color:#9da3a9}
+        .brandbar{height:45px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #303033;margin:0 -1.2rem 1rem;padding:0 1.2rem;background:#181818}
+        .brand-mark{display:grid;place-items:center;width:23px;height:23px;border-radius:5px;background:#245d67;color:#e3f6f3;font-size:10px}
+        .brand-name{font-size:13px;letter-spacing:0;color:#e5e5e5}
+        .brand-sub{font-size:11px;color:#858b91;letter-spacing:0}
+        .brand-meta{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#9da4aa}
+        h1{font-size:15px!important;line-height:1.4!important;letter-spacing:.04em!important;text-transform:uppercase;color:#aeb4ba!important;margin:0 0 .5rem!important}
+        .page-subtitle{display:none}
+        .runtime-card{display:flex;gap:6px;justify-content:flex-start;margin:0 0 .6rem}
+        .status-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;background:#252526;border:1px solid #3b3b3b;border-radius:4px;font-size:10px}
+        .status-label{color:#b8bec4}.status-value{display:none}
+        .is-ready .status-led{background:#4ec9b0;box-shadow:none}.is-missing .status-led{background:#f48771;box-shadow:none}
+        [data-testid="stHorizontalBlock"]{gap:.65rem}
+        .panel-heading{display:flex;align-items:center;gap:8px;background:#252526;height:36px;padding:0 12px;border:1px solid #38383b;border-bottom:0;border-radius:5px 5px 0 0;margin:0;color:#d7d7d7}
+        .panel-title{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:#d7d7d7}
+        .panel-tag{margin-left:auto;color:#868c92;font:10px ui-monospace,SFMono-Regular,Menlo,monospace}
+        [data-testid="stCode"]{border:1px solid #38383b;border-radius:0 0 5px 5px;overflow:hidden;margin-top:0}
+        [data-testid="stCode"] pre{background:#1b1b1c!important}
+        .empty-state{height:410px;display:flex;align-items:center;justify-content:center;background:#1b1b1c;border:1px solid #38383b;border-radius:0 0 5px 5px;color:#7c8288}
+        .stButton>button[kind="primary"]{background:#0e639c;color:#fff;border:1px solid #1177bb;border-radius:4px;min-height:34px;font-size:12px;font-weight:600}
+        .stButton>button[kind="primary"]:hover{background:#1177bb;border-color:#2898e0;color:#fff}
+        .stButton>button:disabled{background:#333;border-color:#414141;color:#777}
+        label[data-baseweb="checkbox"]:has(input:checked)>div:first-child{background:#0e639c!important;border-color:#0e639c!important}
+        [data-testid="stWidgetLabel"] p{color:#c6c6c6!important;font-size:12px}
+        [data-testid="stFileUploader"] section{background:#202124;border:1px dashed #4a4d50;border-radius:4px}
+        [data-testid="stFileUploader"] section *{color:#c4c4c4!important}
+        [data-testid="stAlert"]{background:#332b24;border:1px solid #6e5535;color:#e5c68b}
+        [data-testid="stExpander"]{background:#252526;border:1px solid #38383b;border-radius:4px}
+        .run-row{border-top:1px solid #38383b;margin-top:.8rem;padding-top:.7rem}
+        .activity-heading{display:flex;align-items:center;gap:15px;background:#252526;border:1px solid #38383b;border-bottom:0;padding:8px 12px;color:#aaa;font-size:10px;letter-spacing:.03em}
+        .activity-heading .selected{border-bottom:1px solid #3794ff;padding-bottom:8px;margin-bottom:-9px;color:#fff}
+        .statusbar{display:flex;align-items:center;gap:17px;background:#007acc;color:#fff;margin:1rem -1.2rem -1.5rem;padding:4px 12px;font-size:10px}
+        .statusbar span:last-child{margin-left:auto}
+        @media(max-width:760px){[data-testid="stMainBlockContainer"]{padding-left:.7rem;padding-right:.7rem}.brandbar{margin-left:-.7rem;margin-right:-.7rem;padding:0 .7rem}[data-testid="stHorizontalBlock"]:has(.panel-heading){flex-direction:row!important;flex-wrap:nowrap!important}[data-testid="stHorizontalBlock"]:has(.panel-heading)>[data-testid="column"]{flex:1 1 0%!important;min-width:0!important}.statusbar{margin-left:-.7rem;margin-right:-.7rem}}
+        @media(max-width:520px){[data-testid="stHorizontalBlock"]:has(.panel-heading){flex-direction:column!important}[data-testid="stHorizontalBlock"]:has(.panel-heading)>[data-testid="column"]{flex:1 1 100%!important;min-width:100%!important}}
         </style>
         """,
         unsafe_allow_html=True,
@@ -277,63 +317,54 @@ def main() -> None:
             )
         st.markdown('<div class="support-note">Repairs update the generated tests only.</div>', unsafe_allow_html=True)
 
-    run_col, log_col = st.columns([0.78, 1.22], gap="large", vertical_alignment="top")
     ready = bool(status["ollama"] and status["model"] and status["pytest"] and status["ollama_package"])
     target_ready = bool(source and source_inspection["valid"] and not source_error)
+    st.markdown('<div class="run-row"></div>', unsafe_allow_html=True)
+    run_col, help_col = st.columns([.38, 1.62], vertical_alignment="center")
     with run_col:
-        st.markdown('<div class="panel-title">Run tests</div>', unsafe_allow_html=True)
-        st.caption("One draft, then up to three repairs. Each pytest run stops after 10 seconds.")
-        run_clicked = st.button(
-            "Generate and run tests",
-            type="primary",
-            disabled=not (ready and target_ready),
-            use_container_width=True,
-        )
+        run_clicked = st.button("▶  Run tests", type="primary", disabled=not (ready and target_ready), use_container_width=True)
+    with help_col:
+        st.markdown('<div class="run-meta">One draft, up to three repairs · Each pytest run is capped at 10 seconds</div>', unsafe_allow_html=True)
         if not ready:
             instructions = _install_instructions(status)
             if instructions:
                 st.info("\n\n".join(instructions))
         elif not target_ready and not source_error:
-            st.caption("Upload a `.py` file to start a run.")
+            st.caption("Choose a Python module to enable a run.")
 
-    with log_col:
-        st.markdown(
-            '<div class="panel-heading"><span class="panel-title">Activity</span>'
-            '<span class="panel-tag">RUN LOG</span></div>',
-            unsafe_allow_html=True,
-        )
-        log_placeholder = st.empty()
-        saved_logs = st.session_state.get("run_logs", [])
-        if saved_logs:
-            log_placeholder.code("\n".join(saved_logs), language="text", height=180)
+    st.markdown('<div class="activity-heading"><span class="selected">TERMINAL</span><span>OUTPUT</span><span>PROBLEMS</span><span style="margin-left:auto">RUN ACTIVITY</span></div>', unsafe_allow_html=True)
+    log_placeholder = st.empty()
+    saved_logs = st.session_state.get("run_logs", [])
+    if saved_logs:
+        log_placeholder.code("\n".join(saved_logs), language="text", height=150)
+    else:
+        st.markdown('<div class="empty-state" style="height:auto;min-height:50px;justify-content:flex-start;padding:14px">No activity yet. Run tests to see model and pytest output.</div>', unsafe_allow_html=True)
+
+    if run_clicked and source:
+        st.session_state["run_logs"] = []
+        try:
+            test_path = _new_run_files(source)
+        except OSError as exc:
+            st.error(f"Could not prepare an isolated run folder: {exc}")
         else:
-            log_placeholder.caption("Model requests, pytest output, and repair steps will appear here.")
+            st.session_state["generated_test_path"] = str(test_path)
+            st.session_state["generated_source_name"] = source_name
 
-        if run_clicked and source:
-            st.session_state["run_logs"] = []
-            try:
-                test_path = _new_run_files(source)
-            except OSError as exc:
-                st.error(f"Could not prepare an isolated run folder: {exc}")
-            else:
-                st.session_state["generated_test_path"] = str(test_path)
-                st.session_state["generated_source_name"] = source_name
+            def show_event(event: dict[str, Any]) -> None:
+                entries = list(event.get("logs", []))
+                st.session_state["run_logs"] = entries
+                log_placeholder.code("\n".join(entries), language="text", height=150)
 
-                def show_event(event: dict[str, Any]) -> None:
-                    entries = list(event.get("logs", []))
-                    st.session_state["run_logs"] = entries
-                    log_placeholder.code("\n".join(entries), language="text", height=180)
-
-                with st.spinner("Generating and executing locally…"):
-                    result = TestForgeEngine(model=MODEL).generate_and_heal(
-                        source,
-                        str(test_path),
-                        max_retries=3,
-                        on_event=show_event,
-                    )
-                st.session_state["last_result"] = result
-                st.session_state["run_logs"] = result.get("logs", [])
-                st.rerun()
+            with st.spinner("Generating and executing locally…"):
+                result = TestForgeEngine(model=MODEL).generate_and_heal(
+                    source,
+                    str(test_path),
+                    max_retries=3,
+                    on_event=show_event,
+                )
+            st.session_state["last_result"] = result
+            st.session_state["run_logs"] = result.get("logs", [])
+            st.rerun()
 
     previous = st.session_state.get("last_result")
     if previous:
@@ -351,6 +382,8 @@ def main() -> None:
                 st.code(previous["stdout"], language="text", height=220)
             if previous.get("stderr"):
                 st.code(previous["stderr"], language="text", height=150)
+
+    st.markdown('<div class="statusbar"><span>Open Test</span><span>Python</span><span>pytest · 10s timeout</span><span>Local model: qwen2.5-coder:3b</span></div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
