@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import ipaddress
 import os
 from pathlib import Path
@@ -195,15 +196,48 @@ class TestForgeEngine:
 
     @staticmethod
     def _sanitize(code: str) -> str:
-        """Remove a single surrounding Markdown code fence, if present."""
-        stripped = code.strip()
-        if stripped.startswith("```"):
-            lines = stripped.splitlines()
-            if lines and lines[0].strip().lower() in {"```", "```python", "```py"}:
-                lines = lines[1:]
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            stripped = "\n".join(lines).strip()
+        """Extract executable code from plain text or a model-wrapped response."""
+        lines = code.strip().splitlines()
+        if not lines:
+            return ""
+
+        fence_start = next((index for index, line in enumerate(lines) if line.strip().startswith("```")), None)
+        if fence_start is not None:
+            fence_end = next(
+                (index for index in range(fence_start + 1, len(lines)) if lines[index].strip().startswith("```")),
+                len(lines),
+            )
+            fenced_lines = lines[fence_start + 1 : fence_end]
+            if fenced_lines:
+                return "\n".join(fenced_lines).strip()
+
+        stripped = "\n".join(lines).strip()
+        try:
+            ast.parse(stripped)
+            return stripped
+        except SyntaxError:
+            pass
+
+        # Small local models sometimes preface code with "Here is the file:" or
+        # append a sentence after it. Find a plausible Python start and retain
+        # the longest syntactically valid prefix from that point.
+        code_starts = ("import ", "from ", "def ", "async def ", "class ", "@", "#", "'''", '"""')
+        for start, line in enumerate(lines):
+            if not line.strip().startswith(code_starts):
+                continue
+            best: str | None = None
+            for end in range(len(lines), start, -1):
+                candidate = "\n".join(lines[start:end]).strip()
+                if not candidate:
+                    continue
+                try:
+                    ast.parse(candidate)
+                except SyntaxError:
+                    continue
+                best = candidate
+                break
+            if best is not None:
+                return best
         return stripped
 
     @staticmethod
