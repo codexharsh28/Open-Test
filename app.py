@@ -22,7 +22,7 @@ TARGET_FILE = ROOT / "target_code.py"
 RUNS_DIR = ROOT / ".open_test_runs"
 MODEL = "qwen2.5-coder:3b"
 OLLAMA_TAGS_URL = "http://127.0.0.1:11434/api/tags"
-CODE_WINDOW_HEIGHT = 380
+CODE_WINDOW_HEIGHT = 340
 
 
 def _runtime_status() -> dict[str, Any]:
@@ -147,12 +147,42 @@ def _render_styles() -> None:
         .stButton>button[kind="primary"] {background:var(--forest);color:white;border:1px solid var(--forest);border-radius:7px;min-height:43px;font-weight:700}
         .stButton>button[kind="primary"]:hover {background:#315e49;border-color:#315e49;color:white}
         .stButton>button:disabled {background:#dfe4dc;color:#879188;border:1px solid #dfe4dc}
+        label[data-baseweb="checkbox"]:has(input:checked)>div:first-child{background:#146c6b!important;border-color:#146c6b!important}
         [data-testid="stCode"] {border:1px solid var(--line);border-radius:8px}
         .empty-state {background:#e9ede4;border:1px solid var(--line);border-radius:8px;padding:15px 16px;color:#58665e;font-size:13px;line-height:1.5;min-height:54px}
         [data-testid="stAlert"] {border-radius:8px;background:#e9ede4;border-color:var(--line)}
         [data-testid="stExpander"] {border:1px solid var(--line);border-radius:8px;background:var(--surface)}
         .footerline {border-top:1px solid var(--line);padding-top:14px;margin-top:2.2rem;color:#78837b;font-size:11px}
         @media(max-width:800px) {.workflow{grid-template-columns:repeat(2,1fr)}.workflow-step:nth-child(2){border-right:0}.workflow-step:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+        /* Workbench color and spacing overrides */
+        :root {--ink:#182832;--muted:#687982;--paper:#edf1f3;--surface:#fff;--line:#d7e0e4;--forest:#146c6b;--lime:#b3d7ce}
+        .stApp,[data-testid="stAppViewContainer"]{background:var(--paper);color:var(--ink)}
+        [data-testid="stMainBlockContainer"]{max-width:1440px;padding:1rem 2rem 2.5rem}
+        h1{font-size:1.75rem!important;line-height:1.2!important;letter-spacing:-.035em!important;font-weight:680!important}
+        .brandbar{padding-bottom:.8rem;margin-bottom:1.2rem}
+        .brand-mark{background:#1d3941;color:#e4f2ef}
+        .runtime-card{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap;background:transparent;border:0;padding:0;margin:0}
+        .runtime-kicker,.runtime-model,.runtime-endpoint{display:none}
+        .status-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:11px}
+        .status-label{color:#53656e}.status-value{display:none}
+        .is-ready .status-led{background:#21856c;box-shadow:0 0 0 3px #e1f1e9}
+        .is-missing .status-led{background:#bd715d;box-shadow:0 0 0 3px #f7e8e3}
+        .hero-copy{font-size:13px;margin:0 0 1.1rem}.hero-note{display:none}
+        .section-rule{margin:1rem 0 .6rem;color:#40545d;font-size:12px;letter-spacing:.02em}
+        .workspace-intro{margin:.2rem 0 .6rem}
+        [data-testid="stHorizontalBlock"] [data-testid="column"]:has(.panel-heading){background:#fff;border:1px solid var(--line);border-radius:11px;padding:1rem 1rem .65rem;box-shadow:0 1px 2px rgba(24,40,50,.04)}
+        .panel-heading{border-color:var(--line);padding-bottom:10px;margin-bottom:10px}
+        .panel-title{font-size:12px;font-weight:750;color:#30434c}
+        .panel-tag{color:#70818a;font-size:11px}
+        .support-note{font-size:11px;margin:7px 0 1px}
+        .empty-state{background:#f3f7f7;border:1px dashed #c6d4d8;color:#62757d}
+        [data-testid="stCode"]{border:1px solid #d2dcdf;border-radius:8px;overflow:hidden}
+        .stButton>button[kind="primary"]{background:#146c6b;border-color:#146c6b;border-radius:7px;min-height:40px;font-weight:650}
+        .stButton>button[kind="primary"]:hover{background:#0f5c5c;border-color:#0f5c5c}
+        [data-testid="stAlert"]{border-radius:8px;background:#f7f9f8;border-color:var(--line)}
+        [data-testid="stFileUploader"] section{background:#f7f9f8;border:1px dashed #c4d1d5;border-radius:8px}
+        .page-subtitle,.run-meta{color:var(--muted);font-size:12px;line-height:1.5}
+        @media(max-width:800px){[data-testid="stMainBlockContainer"]{padding-left:1rem;padding-right:1rem}.runtime-card{justify-content:flex-start}.brand-meta{display:none}[data-testid="stHorizontalBlock"]:has(.panel-heading){flex-wrap:wrap}[data-testid="stHorizontalBlock"]:has(.panel-heading)>[data-testid="column"]{flex:1 1 100%;min-width:100%}}
         </style>
         """,
         unsafe_allow_html=True,
@@ -166,45 +196,19 @@ def main() -> None:
 
     st.markdown(
         '<div class="brandbar"><div class="brand-lockup"><div class="brand-mark">OT</div>'
-        '<div><span class="brand-name">OPEN TEST</span><span class="brand-sub">A LOCAL PYTEST WORKSPACE</span></div></div>'
+        '<div><span class="brand-name">OPEN TEST</span><span class="brand-sub">LOCAL TEST RUNNER</span></div></div>'
         '<div class="brand-meta">Private by design · Runs on your machine</div></div>',
         unsafe_allow_html=True,
     )
 
-    hero, runtime = st.columns([1.55, 0.8], gap="large", vertical_alignment="center")
-    with hero:
-        st.markdown('<div class="eyebrow">Write tests. Run them. Learn from failures.</div>', unsafe_allow_html=True)
-        st.markdown('<h1>Tests for your code.<br>Repairs from real failures.</h1>', unsafe_allow_html=True)
-        st.markdown(
-            '<div class="hero-copy">Open Test uses a local coding model to draft pytest coverage, '
-            'runs it with a strict time limit, and feeds the failure output back for another pass.</div>'
-            '<div class="hero-note">Source files, generated tests, and tracebacks stay on this machine. '
-            'The model connection is restricted to local Ollama.</div>',
-            unsafe_allow_html=True,
-        )
-    with runtime:
-        st.markdown(
-            f'<div class="runtime-card"><div class="runtime-kicker">Local engine</div>'
-            f'<div class="runtime-model">{MODEL}</div><div class="runtime-endpoint">127.0.0.1:11434</div>'
-            f'{_status_chip("Ollama service", status["ollama"])}'
-            f'{_status_chip("Model downloaded", status["model"])}'
-            f'{_status_chip("Python dependencies", status["pytest"] and status["ollama_package"])}</div>',
-            unsafe_allow_html=True,
-        )
-
-    st.markdown('<div class="section-rule">How a run works</div>', unsafe_allow_html=True)
+    st.markdown('<h1>Test workspace</h1><div class="page-subtitle">Choose a built-in example or upload a Python module to begin.</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="workflow">'
-        '<div class="workflow-step"><span class="step-num">01 · SOURCE</span><span class="step-name">Read your Python module</span></div>'
-        '<div class="workflow-step"><span class="step-num">02 · DRAFT</span><span class="step-name">Generate focused tests</span></div>'
-        '<div class="workflow-step"><span class="step-num">03 · RUN</span><span class="step-name">Execute with a 10s cap</span></div>'
-        '<div class="workflow-step"><span class="step-num">04 · REPAIR</span><span class="step-name">Use failures for the next pass</span></div>'
-        '</div>',
+        f'<div class="runtime-card">'
+        f'{_status_chip("Ollama", status["ollama"])}'
+        f'{_status_chip(MODEL, status["model"])}'
+        f'{_status_chip("Pytest", status["pytest"] and status["ollama_package"])}</div>',
         unsafe_allow_html=True,
     )
-
-    st.markdown('<div class="section-rule">Workspace</div>', unsafe_allow_html=True)
-    st.markdown('<div class="workspace-intro">Choose the built-in walkthrough or bring a Python module of your own.</div>', unsafe_allow_html=True)
 
     source_col, output_col = st.columns([1, 1], gap="large")
     source: str | None = None
@@ -241,11 +245,7 @@ def main() -> None:
         )
         if source:
             st.code(source, language="python", line_numbers=True, height=CODE_WINDOW_HEIGHT)
-            st.markdown(
-                '<div class="support-note">This read-only preview has its own scroll area. '
-                'Uploaded source is copied into a per-run workspace before pytest starts.</div>',
-                unsafe_allow_html=True,
-            )
+            st.markdown('<div class="support-note">Read-only preview · A private working copy is used for each run.</div>', unsafe_allow_html=True)
         else:
             st.markdown(
                 '<div class="empty-state">Choose a <code>.py</code> file to preview it here and enable a run.</div>',
@@ -275,10 +275,7 @@ def main() -> None:
                 '<div class="empty-state">Generated tests will appear here after the first run.</div>',
                 unsafe_allow_html=True,
             )
-        st.markdown(
-            '<div class="support-note">The repair loop changes generated tests only; it never rewrites your module.</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown('<div class="support-note">Repairs update the generated tests only.</div>', unsafe_allow_html=True)
 
     run_col, log_col = st.columns([0.78, 1.22], gap="large", vertical_alignment="top")
     ready = bool(status["ollama"] and status["model"] and status["pytest"] and status["ollama_package"])
@@ -298,16 +295,11 @@ def main() -> None:
                 st.info("\n\n".join(instructions))
         elif not target_ready and not source_error:
             st.caption("Upload a `.py` file to start a run.")
-        st.markdown(
-            '<div class="result-strip"><span class="result-pill">LOCAL MODEL</span>'
-            '<span class="result-pill">NO REMOTE API</span><span class="result-pill">3 REPAIRS</span></div>',
-            unsafe_allow_html=True,
-        )
 
     with log_col:
         st.markdown(
-            '<div class="panel-heading"><span class="panel-title">Run activity</span>'
-            '<span class="panel-tag">iteration trace</span></div>',
+            '<div class="panel-heading"><span class="panel-title">Activity</span>'
+            '<span class="panel-tag">RUN LOG</span></div>',
             unsafe_allow_html=True,
         )
         log_placeholder = st.empty()
@@ -359,12 +351,6 @@ def main() -> None:
                 st.code(previous["stdout"], language="text", height=220)
             if previous.get("stderr"):
                 st.code(previous["stderr"], language="text", height=150)
-
-    st.markdown(
-        '<div class="footerline">OPEN TEST · PYTEST EXECUTION HARNESS · SOURCE AND MODEL TRAFFIC STAY LOCAL</div>',
-        unsafe_allow_html=True,
-    )
-
 
 if __name__ == "__main__":
     main()
